@@ -12,6 +12,14 @@ buildscript {
     }
 }
 
+allprojects {
+    repositories {
+        jcenter()
+        google()
+        maven { url 'https://jitpack.io' }
+    }
+}
+
 apply plugin: 'com.android.library'
 // apply plugin: "com.jfrog.bintray"
 // apply plugin: 'com.github.dcendents.android-maven'
