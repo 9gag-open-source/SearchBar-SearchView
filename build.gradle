@@ -1,16 +1,6 @@
 apply plugin: 'com.android.library'
-apply plugin: "com.jfrog.bintray"
+// apply plugin: "com.jfrog.bintray"
 // apply plugin: 'com.github.dcendents.android-maven'
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
-    }
-}
 
 android {
     compileSdkVersion 26
@@ -87,8 +77,8 @@ ext {
     allLicenses = ["Apache-2.0"]
 }
 
-apply from: './install.gradle'
-apply from: './bintray.gradle'
+// apply from: './install.gradle'
+// apply from: './bintray.gradle'
 
 /*./gradlew install./gradlew bintrayUpload
 gradlew install
