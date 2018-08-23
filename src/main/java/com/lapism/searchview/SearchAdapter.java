@@ -29,6 +29,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ResultView
     protected List<SearchItem> mSuggestions = new ArrayList<>();
     protected List<SearchItem> mResults = new ArrayList<>();
     protected OnSearchItemClickListener mListener;
+    private Filter filter;
 
     public SearchAdapter(Context context) {
         mHistoryDatabase = new SearchHistoryTable(context);
@@ -84,64 +85,68 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ResultView
     // ---------------------------------------------------------------------------------------------
     @Override
     public Filter getFilter() {
-        return new Filter() {
-            @Override
-            protected FilterResults performFiltering(CharSequence constraint) {
-                FilterResults filterResults = new FilterResults();
-
-                mKey = constraint;
-
-                if (!TextUtils.isEmpty(constraint)) {
-                    mKey = constraint.toString().toLowerCase(Locale.getDefault());
-
-                    List<SearchItem> results = new ArrayList<>();
-                    List<SearchItem> history = new ArrayList<>();
-                    List<SearchItem> databaseAllItems = mHistoryDatabase.getAllItems(mDatabaseKey);
-
-                    if (!databaseAllItems.isEmpty()) {
-                        history.addAll(databaseAllItems);
-                    }
-                    history.addAll(mSuggestions);
-
-                    for (SearchItem item : history) {
-                        String string = item.getText().toString().toLowerCase(Locale.getDefault());
-                        if (string.contains(mKey)) {
-                            results.add(item);
+        if (filter == null) {
+            filter = new Filter() {
+                @Override
+                protected FilterResults performFiltering(CharSequence constraint) {
+                    FilterResults filterResults = new FilterResults();
+    
+                    mKey = constraint;
+    
+                    if (!TextUtils.isEmpty(constraint)) {
+                        mKey = constraint.toString().toLowerCase(Locale.getDefault());
+    
+                        List<SearchItem> results = new ArrayList<>();
+                        List<SearchItem> history = new ArrayList<>();
+                        List<SearchItem> databaseAllItems = mHistoryDatabase.getAllItems(mDatabaseKey);
+    
+                        if (!databaseAllItems.isEmpty()) {
+                            history.addAll(databaseAllItems);
+                        }
+                        history.addAll(mSuggestions);
+    
+                        for (SearchItem item : history) {
+                            String string = item.getText().toString().toLowerCase(Locale.getDefault());
+                            if (string.contains(mKey)) {
+                                results.add(item);
+                            }
+                        }
+    
+                        if (results.size() > 0) {
+                            filterResults.values = results;
+                            filterResults.count = results.size();
                         }
                     }
-
-                    if (results.size() > 0) {
-                        filterResults.values = results;
-                        filterResults.count = results.size();
-                    }
+    
+                    return filterResults;
                 }
-
-                return filterResults;
-            }
-
-            @Override
-            protected void publishResults(CharSequence constraint, FilterResults results) {
-                List<SearchItem> dataSet = new ArrayList<>();
-
-                if (results.count > 0) {
-                    List<?> result = (ArrayList<?>) results.values;
-                    for (Object object : result) {
-                        if (object instanceof SearchItem) {
-                            dataSet.add((SearchItem) object);
+    
+                @Override
+                protected void publishResults(CharSequence constraint, FilterResults results) {
+                    List<SearchItem> dataSet = new ArrayList<>();
+    
+                    if (results.count > 0) {
+                        List<?> result = (ArrayList<?>) results.values;
+                        for (Object object : result) {
+                            if (object instanceof SearchItem) {
+                                dataSet.add((SearchItem) object);
+                            }
+                        }
+                    } else {
+                        if (TextUtils.isEmpty(mKey)) {
+                            List<SearchItem> allItems = mHistoryDatabase.getAllItems(mDatabaseKey);
+                            if (!allItems.isEmpty()) {
+                                dataSet = allItems;
+                            }
                         }
                     }
-                } else {
-                    if (TextUtils.isEmpty(mKey)) {
-                        List<SearchItem> allItems = mHistoryDatabase.getAllItems(mDatabaseKey);
-                        if (!allItems.isEmpty()) {
-                            dataSet = allItems;
-                        }
-                    }
+    
+                    setData(dataSet);
                 }
+            };
+        }
 
-                setData(dataSet);
-            }
-        };
+        return filter;
     }
 
     // ---------------------------------------------------------------------------------------------
