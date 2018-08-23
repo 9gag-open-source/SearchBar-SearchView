@@ -13,6 +13,7 @@ import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import java.lang.IllegalStateException;
 
 
 class SearchAnimator {
@@ -86,38 +87,44 @@ class SearchAnimator {
             }
             float finalRadius = (float) Math.hypot(Math.max(cx, displaySize.x - cx), cy);
 
-            Animator anim = ViewAnimationUtils.createCircularReveal(view, cx, cy, 0.0f, finalRadius);
-            anim.setInterpolator(new AccelerateDecelerateInterpolator());
-            anim.setDuration(duration);
-            anim.addListener(new Animator.AnimatorListener() { // new AnimatorListenerAdapter()
-                @Override
-                public void onAnimationStart(Animator animation) {
-                    if (listener != null) {
-                        listener.onOpen();
+            try {
+                Animator anim = ViewAnimationUtils.createCircularReveal(view, cx, cy, 0.0f, finalRadius);
+                anim.setInterpolator(new AccelerateDecelerateInterpolator());
+                anim.setDuration(duration);
+                anim.addListener(new Animator.AnimatorListener() { // new AnimatorListenerAdapter()
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                        if (listener != null) {
+                            listener.onOpen();
+                        }
                     }
-                }
-
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    if (shouldClearOnOpen && editText.length() > 0) {
-                        editText.getText().clear();
+    
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        if (shouldClearOnOpen && editText.length() > 0) {
+                            editText.getText().clear();
+                        }
+                        editText.requestFocus();
                     }
-                    editText.requestFocus();
-                }
-
-                @Override
-                public void onAnimationCancel(Animator animation) {
-
-                }
-
-                @Override
-                public void onAnimationRepeat(Animator animation) {
-
-                }
-            });
-
-            view.setVisibility(View.VISIBLE);
-            anim.start();
+    
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+    
+                    }
+    
+                    @Override
+                    public void onAnimationRepeat(Animator animation) {
+    
+                    }
+                });
+    
+                view.setVisibility(View.VISIBLE);
+                anim.start();
+            } catch (IllegalStateException ise) {
+                // Fatal Exception: java.lang.IllegalStateException: Cannot start this animator on a detached view!
+                // The above exception is throwing from ViewAnimationUtils.createCircularReveal()
+                android.util.Log.w("SearchAnimator", ise.getMessage(), ise);
+            }
         }
     }
 
